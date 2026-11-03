@@ -1,0 +1,98 @@
+
+> neocalc-pro@0.1.1 test
+> npm run test:unit && npm run test:ui && npm run build && npm run test:pwa
+
+
+> neocalc-pro@0.1.1 test:unit
+> node --import tsx --test --test-isolation=none src/*.test.ts
+
+✔ TIG: glicose 10%, 3mL/h, 1kg = 5mg/kg/min (1.582773ms)
+✔ TIG rejeita divisão por zero e valores não finitos (0.331212ms)
+✔ IPM atravessa semana e idade corrigida preserva sinal (0.132247ms)
+✔ limiares gestacionais e dias inválidos (0.116456ms)
+✔ IO usa FiO₂ em porcentagem e somente PaO₂ arterial (0.123799ms)
+✔ idades: 0d, virada de semana, 40 semanas e um ano (0.244779ms)
+✔ classificação em todos os limiares de semanas (0.149274ms)
+✔ idades rejeitam entradas inválidas e fora do escopo técnico (0.249359ms)
+✔ idade cronológica: 24h completas, fuso, ano bissexto e datas inválidas (0.208934ms)
+✔ TIG: oráculo independente em dimensões e pesos de 100g a 10kg (0.64034ms)
+✔ TIG: resultados de referência adicionais e rejeição de entradas extremas (0.500289ms)
+✔ IO e volume: rejeitam NaN, infinito, zero e amostras não arteriais (0.642749ms)
+✔ paciente fictício: criar, editar, pesquisar, arquivar, reativar e excluir sem mutar origem (31.351406ms)
+✔ IDs sugeridos não colidem após exclusão de paciente intermediário (0.178607ms)
+✔ cadastro rejeita duplicata, futuro, peso inválido e campos vazios sem converter em zero (0.789083ms)
+✔ gases fora de ordem são ordenados, faltantes preservados e snapshot ventilatório não sobrescrito (2.944414ms)
+✔ gases/ventilação rejeitam coleta anterior ao nascimento, futuro, valores inválidos e motivo vazio (0.81743ms)
+✔ importação rejeita esquema inválido, ID duplicado, valor não finito e snapshot posterior à coleta (0.967299ms)
+✔ séries usam ordem temporal e não confundem ausente com zero (0.233131ms)
+✔ exclusão remove dados clínicos da trilha do paciente e preserva a de outros pacientes (0.23909ms)
+✔ cofre round-trip, senha incorreta e adulteração rejeitadas (441.799798ms)
+✔ cofre exige senha longa e usa salt/nonce aleatórios (217.154948ms)
+✔ integração IndexedDB: conteúdo criptografado preservado após reabertura (264.920782ms)
+✔ envelope rejeita versão, comprimentos, bytes e revisões inválidos (147.572488ms)
+✔ criptografia autenticada: adulterar salt ou IV também impede abertura (339.252525ms)
+✔ cofre v1 sem revisão continua legível após atualização (212.280082ms)
+✔ concorrência entre abas: comparação e gravação atômicas impedem sobrescrita silenciosa (212.970323ms)
+✔ payload autenticado porém com esquema inválido é recusado sem expor estado (304.284692ms)
+✔ credenciais Unicode ou espaços aceitas pela v1 continuam abrindo e permitindo backup (1028.054079ms)
+ℹ tests 29
+ℹ suites 0
+ℹ pass 29
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3294.132704
+
+> neocalc-pro@0.1.1 test:ui
+> vitest run --config vitest.config.ts
+
+
+ RUN  v4.1.12 /workspace/neocalc-pro
+
+
+ Test Files  4 passed (4)
+      Tests  38 passed (38)
+   Start at  13:44:13
+   Duration  18.39s (transform 350ms, setup 425ms, import 633ms, tests 15.39s, environment 1.39s)
+
+
+> neocalc-pro@0.1.1 build
+> tsc --noEmit && vite build && node scripts/finalize-pwa.mjs
+
+vite v6.4.5 building for production...
+transforming...
+✓ 1591 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                                        0.71 kB │ gzip:  0.41 kB
+dist/assets/dm-sans-latin-600-normal-Aqo67rzb.woff2   14.14 kB
+dist/assets/manrope-latin-600-normal-4f0koTD-.woff2   14.17 kB
+dist/assets/dm-sans-latin-400-normal-CW0RaeGs.woff2   14.20 kB
+dist/assets/manrope-latin-700-normal-BZp_XxE4.woff2   14.21 kB
+dist/assets/dm-sans-latin-500-normal-B9HHJjqV.woff2   14.30 kB
+dist/assets/dm-sans-latin-600-normal-BmdmIIQ2.woff    18.32 kB
+dist/assets/dm-sans-latin-400-normal-BwCSEQnW.woff    18.36 kB
+dist/assets/manrope-latin-600-normal-BqgrALkZ.woff    18.38 kB
+dist/assets/manrope-latin-700-normal-DGRFkw-m.woff    18.41 kB
+dist/assets/dm-sans-latin-500-normal-Dr3UlScf.woff    18.52 kB
+dist/assets/index-DQSQKdVP.css                        20.75 kB │ gzip:  5.26 kB
+dist/assets/index-CUqWSnsZ.js                        288.41 kB │ gzip: 88.96 kB
+✓ built in 2.19s
+
+> neocalc-pro@0.1.1 test:pwa
+> node --test --test-isolation=none scripts/pwa.test.mjs
+
+✔ service worker pré-carrega shell e retorna cópia em falha de rede simulada (57.356279ms)
+✔ service worker não intercepta APIs, autenticação, backups, queries ou POST (6.2395ms)
+✔ precache falha em redirecionamento e ativação preserva caches de outros apps (4.82599ms)
+✔ manifest e build contêm recursos esperados, sem alegar instalação em navegador (9.44835ms)
+✔ HTML de login com status 200 não é aceito como shell no precache (1.611936ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 100.647811

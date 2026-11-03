@@ -1,24 +1,33 @@
-# Arquitetura técnica
+# Arquitetura técnica — 0.1.1
 
-- `src/main.tsx`: shell React, navegação, formulários, estado da sessão, fluxo de cofre e ações do usuário.
-- `src/components.tsx`: gráficos SVG, tabela e linha do tempo.
-- `src/clinical.ts`: funções matemáticas puras independentes da interface.
-- `src/model.ts`: tipos e fábrica de dados simulados relativos à data atual.
-- `src/storage.ts`: criptografia autenticada, serialização e IndexedDB v1.
-- `src/*.test.ts`: testes matemáticos, criptográficos e integração IndexedDB em memória.
-- `public/`: manifest, ícones e template do service worker.
-- `scripts/finalize-pwa.mjs`: geração de precache do build e versão de cache.
+- `src/main.tsx`: entrada React, fontes locais, CSS e registro do service worker com tratamento de erro.
+- `src/App.tsx`: navegação, formulários e estados de apresentação. Separado da entrada para testar sem executar montagem global.
+- `src/useSession.ts`: ciclo de vida do cofre, senha volátil, deadline de inatividade, proteção de operações em andamento, estado e importação/exportação.
+- `src/records.ts`: mutações puras de pacientes/eventos e seleção de séries; validações independentes do HTML.
+- `src/validation.ts`: validação estrita e normalização de pacientes, gasometrias, ventilação e trilha.
+- `src/storage.ts`: envelope v1, Web Crypto, importação limitada e transações IndexedDB com revisão atômica.
+- `src/clinical.ts`: cálculos matemáticos puros e validações de entrada, sem metas ou prescrição.
+- `src/components.tsx`: tabelas, gráficos SVG proporcionais ao tempo e linha do tempo completa ou resumida.
+- `src/model.ts`: tipos e fixtures explicitamente simuladas.
+- `src/*.test.ts`: lógica, criptografia, dados e integração IndexedDB simulada.
+- `tests/`: interface e sessão com JSDOM; não contém teste em navegador real.
+- `public/` e `scripts/finalize-pwa.mjs`: manifest, ícones e worker com lista explícita e versão por conteúdo.
+- `scripts/pwa.test.mjs`: testes em sandbox do worker e conferência do build.
 
-## Fluxo local-first
+## Persistência e compatibilidade
 
-A sessão inicial usa dados simulados em memória. Ao criar o cofre, o estado é cifrado e salvo como envelope `{version,salt,iv,data}` na object store `vault`, chave `state`. Leitura/gravação fecham a conexão IndexedDB após a transação. A derivação da chave usa PBKDF2 com salt aleatório; AES-GCM fornece confidencialidade e autenticidade do ciphertext. A senha não é salva nem enviada. O schema do banco e envelope são v1. Rascunhos são exclusivamente voláteis e não fazem parte de backups.
+Banco `neocalc-vault`, versão 1, object store `vault`, chave `state`. O envelope mantém `{version:1,salt,iv,data}` e recebe a propriedade opcional `revision` nas gravações. Envelope antigo sem revisão é lido como revisão 0; criptografia não mudou. Leitura de estado exige autenticação do ciphertext e validação do esquema. Nenhum teste acessa o cofre de um navegador do usuário.
 
-Cada mutação produz um estado e acrescenta evento na trilha. Dados são gravados antes de atualizar a tela quando o cofre está ativo; uma falha é exibida ao usuário. Não há fila de sincronização, API clínica ou credencial de nuvem. Histórico de ventilação e gasometria é append-only pela interface, mas o armazenamento local e backups não são invioláveis. Importação exige decriptação e confirmação, com validação estrutural básica; endurecimento do esquema e limites de arquivo são pendências antes do uso real.
+Transação readwrite lê a revisão e grava o próximo envelope somente se o valor ainda corresponder ao esperado. Essa operação é atômica no IndexedDB; incompatibilidade bloqueia a sessão para recarregar. A revisão é metadado de concorrência, não trilha inviolável. Operações simultâneas na mesma sessão são recusadas. Abas não sincronizam automaticamente a interface.
 
-## Riscos e próximos controles
+A senha é referência volátil da sessão e a chave é derivada não exportável para cada cifra/decifra. Credenciais v1 mantêm a semântica de abertura antiga; novas senhas devem ter pelo menos 12 caracteres Unicode, não ser só espaços e não exceder 1024 unidades UTF-16. Isto não mede entropia. Não há rotação de senha. Dados clínicos e rascunhos saem do estado do app ao bloquear; não se promete apagamento físico da memória JavaScript.
 
-Esta implementação é protótipo de engenharia. Exige revisão de segurança, modelo de ameaça institucional, CSP/headers conforme hospedagem, detecção de importações inconsistentes, proteção de concorrência entre abas, fluxo de recuperação documentado, testes de falha de disco/quota, revisão do gerenciamento de chaves, acessibilidade e LGPD. O bloqueio remove os dados clínicos e rascunhos do estado da sessão e a senha da referência do app, mas JavaScript não oferece garantia de apagamento físico da memória. Não coleta nomes, CPF ou prontuário; pseudonimização não equivale a anonimização.
+Uma geração de sessão e um deadline impedem que uma operação concluída depois do bloqueio republique registros ou entregue um backup. Transação já iniciada pode terminar no disco; dados só reaparecem após desbloqueio. Falhas de gravação não atualizam o estado de registros e deixam o formulário para nova tentativa. Se o cofre desaparecer enquanto bloqueado, um banco vazio não é salvo silenciosamente; demonstração volátil fica disponível separadamente.
 
-## Publicação e instalação
+Estado, envelopes e arquivos têm limites técnicos. Importação não mescla: valida, confirma e substitui. Histórico gasométrico/ventilatório não é editado silenciosamente; gás novo recebe cópia dos parâmetros vigentes. Exclusão confirmada remove detalhes do paciente e sua trilha, preserva os demais pacientes e registra um evento de exclusão. Não elimina backups externos ou páginas antigas do dispositivo.
 
-Build estático; `dist/` não contém banco ou dados inseridos no dispositivo. Os dados demonstrativos no código são fictícios. O service worker usa network-first com fallback de cache local; assets e fontes são pré-carregados em instalação. Atualizações de cache dependem de conexão. Sem browser QA automatizado nesta entrega, a instalação e a experiência offline permanecem sujeitas à validação nos navegadores alvo.
+## Worker e entrega
+
+Somente recursos estáticos explicitamente gerados entram no cache. APIs, queries, backups e autenticação são excluídos. Shell exige marcador do app; redirecionamentos e páginas de login não são aceitos como shell. Atualização aguarda o ciclo normal de fechamento das abas; limpeza restringe-se a caches NeoCalc. Fontes são locais. O registro do worker e a disponibilidade real dependem do navegador e da autenticação da hospedagem.
+
+Instalação e offline não foram testados em navegador. A revisão não certifica LGPD, segurança institucional ou uso assistencial. Consulte `AUDITORIA.md` para riscos, evidências e matriz de dispositivos.

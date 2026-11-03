@@ -1,0 +1,79 @@
+
+ RUN  v3.2.7 /workspace/neocalc-pro
+
+ ❯ tests/regressions.test.tsx (5 tests | 5 failed) 639ms
+   × regressão: IO rejeita NaN e Infinity 12ms
+     → expected [Function] to throw an error
+   × regressão: idade em dias completos não aceita fração 1ms
+     → expected [Function] to throw an error
+   × regressão: eixo cronológico representa intervalos reais 50ms
+     → expected 0.5 to be close to 0.1, received difference is 0.4, but expected 0.005
+   × regressão: histórico completo inclui mais de quatro eventos 373ms
+     → expected <div class="event">…(2)</div>
+…(3) to have a length of 5 but got 4
+   × regressão: interface não declara offline pronto a partir de onLine 201ms
+     → expected <span class="status"><i></i></span> to be null
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 5 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/regressions.test.tsx > regressão: IO rejeita NaN e Infinity
+AssertionError: expected [Function] to throw an error
+ ❯ tests/regressions.test.tsx:2:96
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/5]⎯
+
+ FAIL  tests/regressions.test.tsx > regressão: idade em dias completos não aceita fração
+AssertionError: expected [Function] to throw an error
+ ❯ tests/regressions.test.tsx:3:92
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/5]⎯
+
+ FAIL  tests/regressions.test.tsx > regressão: eixo cronológico representa intervalos reais
+AssertionError: expected 0.5 to be close to 0.1, received difference is 0.4, but expected 0.005
+ ❯ tests/regressions.test.tsx:4:428
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/5]⎯
+
+ FAIL  tests/regressions.test.tsx > regressão: histórico completo inclui mais de quatro eventos
+AssertionError: expected <div class="event">…(2)</div>
+…(3) to have a length of 5 but got 4
+
+- Expected
++ Received
+
+- 5
++ 4
+
+ ❯ tests/regressions.test.tsx:5:285
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/5]⎯
+
+ FAIL  tests/regressions.test.tsx > regressão: interface não declara offline pronto a partir de onLine
+AssertionError: expected <span class="status"><i></i></span> to be null
+
+- Expected: 
+null
+
++ Received: 
+<span
+  class="status"
+>
+  <i />
+  Disponível offline
+</span>
+
+ ❯ tests/regressions.test.tsx:6:206
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/5]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  5 failed (5)
+   Start at  13:10:55
+   Duration  1.77s (transform 265ms, setup 145ms, collect 413ms, tests 639ms, environment 335ms, prepare 85ms)
+

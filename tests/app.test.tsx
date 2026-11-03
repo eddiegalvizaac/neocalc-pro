@@ -336,7 +336,8 @@ test("todos os botões das calculadoras abrem o formulário correto; fórmulas e
   d = screen.getByRole("dialog");
   field(d, "IG ao nascer (semanas)", "32");
   field(d, "Dias adicionais da IG", "0");
-  field(d, "Idade pós-natal (dias completos)", "56");
+  field(d, "Data e hora do nascimento", "2026-01-01T08:00");
+  field(d, "Data e hora da avaliação", "2026-02-26T08:00");
   fireEvent.click(within(d).getByRole("button", { name: "Calcular" }));
   expect(within(d).getByRole("status").textContent).toContain(
     "IPM: 40s 0d · Idade corrigida: 0s 0d",
@@ -625,4 +626,39 @@ test("inicialização com verificação duplicada de efeitos não bloqueia a dem
   expect(
     (screen.getByLabelText("Paciente ativo") as HTMLSelectElement).value,
   ).toBe("RN-900");
+});
+
+test("idade usa nascimento e avaliação de hoje, deriva dias automaticamente e permite atualizar hoje", async () => {
+  await boot();
+  fireEvent.click(screen.getByRole("button", { name: /^Idade e crescimento/ }));
+  const d = screen.getByRole("dialog");
+  expect(
+    within(d).queryByLabelText("Idade pós-natal (dias completos)"),
+  ).toBeNull();
+  const reference = within(d).getByLabelText(
+    "Data e hora da avaliação",
+  ) as HTMLInputElement;
+  expect(Math.abs(Date.parse(reference.value) - Date.now())).toBeLessThan(2000);
+  expect(
+    (within(d).getByLabelText("Data e hora do nascimento") as HTMLInputElement)
+      .value,
+  ).not.toBe("");
+  field(d, "IG ao nascer (semanas)", "29");
+  field(d, "Dias adicionais da IG", "3");
+  field(d, "Data e hora do nascimento", "2026-01-01T08:00");
+  field(d, "Data e hora da avaliação", "2026-01-13T08:00");
+  expect(
+    within(d).getByText("Idade pós-natal calculada: 12 dias completos."),
+  ).toBeTruthy();
+  fireEvent.click(within(d).getByRole("button", { name: "Calcular" }));
+  expect(within(d).getByRole("status").textContent).toContain("IPM: 31s 1d");
+  field(d, "Data e hora da avaliação", "2025-12-31T08:00");
+  expect(within(d).queryByRole("status")).toBeNull();
+  fireEvent.click(within(d).getByRole("button", { name: "Calcular" }));
+  await screen.findByText(
+    "A avaliação deve ser igual ou posterior ao nascimento.",
+  );
+  fireEvent.click(within(d).getByRole("button", { name: "Usar data de hoje" }));
+  expect(Math.abs(Date.parse(reference.value) - Date.now())).toBeLessThan(2000);
+  expect(within(d).queryByRole("status")).toBeNull();
 });

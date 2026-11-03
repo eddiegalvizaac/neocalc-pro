@@ -77,3 +77,14 @@ export function postnatalDays(born: string, now = Date.now()) {
     throw Error("Nascimento inválido ou futuro.");
   return Math.floor((now - timestamp) / 86400000);
 }
+
+// A reference date is explicit; an earlier evaluation must never produce negative postnatal days.
+export function ageAtEvaluation(birth: string, reference: string) {
+  const end = Date.parse(reference);
+  if (!birth || !reference || !Number.isFinite(end))
+    throw Error("Informe data e hora válidas para nascimento e avaliação.");
+  const start = Date.parse(birth);
+  if (!Number.isFinite(start) || start > end)
+    throw Error("A avaliação deve ser igual ou posterior ao nascimento.");
+  return postnatalDays(birth, end);
+}

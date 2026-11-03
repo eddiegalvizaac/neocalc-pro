@@ -34,6 +34,7 @@ import {
   oxygenIndex,
   infusionRate,
   postnatalDays,
+  ageAtEvaluation,
 } from "./clinical";
 
 import { MAX_BACKUP_BYTES } from "./storage";
@@ -81,6 +82,15 @@ const nowLocal = () =>
   new Date(Date.now() - new Date().getTimezoneOffset() * 60000)
     .toISOString()
     .slice(0, 16);
+// Keep the stored birth time when filling the native local date/time control.
+const localDateTime = (value: string) => {
+  const d = new Date(value);
+  return Number.isFinite(d.getTime())
+    ? new Date(d.getTime() - d.getTimezoneOffset() * 60000)
+        .toISOString()
+        .slice(0, 23)
+    : "";
+};
 const num = numeric;
 const Field = ({
   label,
@@ -131,6 +141,8 @@ export default function App() {
     [selected, setSelected] = useState<string[]>([]),
     [calc, setCalc] = useState("TIG"),
     [result, setResult] = useState(""),
+    [ageBirth, setAgeBirth] = useState(""),
+    [ageReference, setAgeReference] = useState(""),
     [offline, setOffline] = useState(!navigator.onLine);
   const drafts = useRef<Record<string, Record<string, string>>>({});
   const [, refreshClock] = useState(0);
@@ -150,6 +162,8 @@ export default function App() {
       drafts.current = {};
       setModal("");
       setResult("");
+      setAgeBirth("");
+      setAgeReference("");
       setSelected([]);
       setQuery("");
       setMobile(false);
@@ -209,6 +223,14 @@ export default function App() {
     gas = p?.gases.at(-1);
   const post = p ? postnatalDays(p.born) : 0;
   const age = p ? ages(p.weeks, p.days, post) : null;
+  let calculatedPostnatal: number | undefined;
+  if (ageBirth && ageReference) {
+    try {
+      calculatedPostnatal = ageAtEvaluation(ageBirth, ageReference);
+    } catch {
+      /* Invalid/incomplete inputs are explained on submission. */
+    }
+  }
   useEffect(() => {
     const fn = () => setOffline(!navigator.onLine);
     addEventListener("online", fn);
@@ -238,6 +260,10 @@ export default function App() {
     setSelected([]);
   }
   function openCalc(name: string) {
+    if (name === "Idade e crescimento") {
+      setAgeBirth(p ? localDateTime(p.born) : "");
+      setAgeReference(localDateTime(new Date().toISOString()));
+    }
     setCalc(name);
     setResult("");
     setModal("calc");
@@ -1133,7 +1159,7 @@ export default function App() {
               <div className="card">
                 <BookOpen className="teal" />
                 <h2>Versão e validação</h2>
-                <p>NeoCalc Pro 0.1.1 · PWA · Fase 1 e NeoMonitor inicial.</p>
+                <p>NeoCalc Pro 0.1.2 · PWA · Fase 1 e NeoMonitor inicial.</p>
                 <p>
                   Não validado para uso assistencial. Não substitui julgamento
                   clínico, monitorização, protocolos institucionais ou
@@ -1180,7 +1206,7 @@ export default function App() {
               <ShieldCheck size={14} /> Dados locais. Cuidado responsável.
             </span>
             <span>
-              NeoCalc Pro <b>v0.1.1</b> <i /> Apoio à decisão profissional
+              NeoCalc Pro <b>v0.1.2</b> <i /> Apoio à decisão profissional
             </span>
           </footer>
         </main>
@@ -1276,10 +1302,13 @@ export default function App() {
                         const a = ages(
                           num(f, "weeks"),
                           num(f, "days"),
-                          num(f, "post"),
+                          ageAtEvaluation(
+                            String(f.get("birthDate")),
+                            String(f.get("referenceDate")),
+                          ),
                         );
                         setResult(
-                          `IPM: ${formatAge(a.pma)} · Idade corrigida: ${formatAge(a.corrected)} · ${a.category}`,
+                          `Idade pós-natal: ${ageAtEvaluation(ageBirth, ageReference)} dias completos · IPM: ${formatAge(a.pma)} · Idade corrigida: ${formatAge(a.corrected)} · ${a.category}`,
                         );
                       }
                       if (calc === "Índice de oxigenação")
@@ -1330,13 +1359,53 @@ export default function App() {
                           max={6}
                           step="1"
                         />
-                        <Field
-                          name="post"
-                          label="Idade pós-natal (dias completos)"
-                          value={post}
-                          min={0}
-                          step="1"
-                        />
+                        <label>
+                          Data e hora do nascimento
+                          <input
+                            type="datetime-local"
+                            name="birthDate"
+                            required
+                            step="any"
+                            value={ageBirth}
+                            onChange={(e) => setAgeBirth(e.target.value)}
+                          />
+                        </label>
+                        <label>
+                          Data e hora da avaliação
+                          <input
+                            type="datetime-local"
+                            name="referenceDate"
+                            required
+                            step="any"
+                            value={ageReference}
+                            onChange={(e) => setAgeReference(e.target.value)}
+                          />
+                        </label>
+                        <div className="wide age-date-summary">
+                          <button
+                            type="button"
+                            className="subtle"
+                            onClick={() => {
+                              setAgeReference(
+                                localDateTime(new Date().toISOString()),
+                              );
+                              setResult("");
+                            }}
+                          >
+                            Usar data de hoje
+                          </button>
+                          <p className="muted" aria-live="polite">
+                            {calculatedPostnatal === undefined
+                              ? "Informe nascimento e avaliação válidos."
+                              : `Idade pós-natal calculada: ${calculatedPostnatal} dias completos.`}
+                          </p>
+                          <small className="muted">
+                            A avaliação inicia com a data e a hora atuais. Os
+                            dias completos são calculados a cada 24 horas; os
+                            dados do paciente não são alterados por esta
+                            calculadora.
+                          </small>
+                        </div>
                       </>
                     ) : calc === "Índice de oxigenação" ? (
                       <>
@@ -1387,7 +1456,7 @@ export default function App() {
                     {calc === "TIG"
                       ? "TIG = glicose (%) × 10 × taxa (mL/h) ÷ [peso (kg) × 60]. A concentração percentual representa g/100 mL. Some separadamente a contribuição de todas as infusões."
                       : calc === "Idade e crescimento"
-                        ? "IPM (dias) = IG ao nascer × 7 + dias adicionais + idade pós-natal. Idade corrigida = IPM − 280 dias. Valores negativos indicam tempo até 40 semanas. Classificação pela IG ao nascimento."
+                        ? "Idade pós-natal = parte inteira de (data/hora da avaliação − data/hora do nascimento) ÷ 24 horas, considerando o fuso local. IPM (dias) = IG ao nascer × 7 + dias adicionais + idade pós-natal. Idade corrigida = IPM − 280 dias. Valores negativos indicam tempo até 40 semanas. Classificação pela IG ao nascimento."
                         : calc === "Índice de oxigenação"
                           ? "IO = FiO₂ (%) × pressão média de vias aéreas (cmH₂O) ÷ PaO₂ (mmHg). Use medidas contemporâneas. Não usar PO₂ venosa ou capilar."
                           : "Taxa (mL/h) = volume prescrito (mL) ÷ duração (h). Não estima necessidades hídricas nem constitui prescrição."}

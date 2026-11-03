@@ -140,3 +140,47 @@ test("IO e volume: rejeitam NaN, infinito, zero e amostras não arteriais", () =
   ])
     assert.throws(() => infusionRate(...(v as [number, number])));
 });
+
+import { ageAtEvaluation } from "./clinical";
+test("referência por data/hora preserva zero, 24 horas completas e 56 dias", () => {
+  assert.equal(
+    ageAtEvaluation("2026-01-01T08:00:00Z", "2026-01-01T08:00:00Z"),
+    0,
+  );
+  assert.equal(
+    ageAtEvaluation("2026-01-01T08:00:00Z", "2026-01-02T07:59:59Z"),
+    0,
+  );
+  assert.equal(
+    ageAtEvaluation("2026-01-01T08:00:00Z", "2026-01-02T08:00:00Z"),
+    1,
+  );
+  assert.equal(
+    ageAtEvaluation("2026-01-01T08:00:00Z", "2026-02-26T08:00:00Z"),
+    56,
+  );
+});
+test("referência por data/hora considera fuso, passagem de mês/ano e ano bissexto", () => {
+  assert.equal(
+    ageAtEvaluation("2026-03-08T01:30:00-05:00", "2026-03-09T01:30:00-04:00"),
+    0,
+  );
+  assert.equal(
+    ageAtEvaluation("2024-02-28T23:30:00-03:00", "2024-03-01T23:30:00-03:00"),
+    2,
+  );
+  assert.equal(
+    ageAtEvaluation("2025-12-31T23:30:00Z", "2026-01-01T23:30:00Z"),
+    1,
+  );
+});
+test("referência por data/hora rejeita ausência, valor inválido e avaliação anterior", () => {
+  for (const [b, r] of [
+    ["", "2026-01-01"],
+    ["2026-01-01", ""],
+    ["inválido", "2026-01-01"],
+    ["2026-01-01", "inválido"],
+    ["2026-01-02T08:00Z", "2026-01-01T08:00Z"],
+  ])
+    assert.throws(() => ageAtEvaluation(b, r));
+});

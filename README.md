@@ -1,6 +1,12 @@
-# NeoCalc Pro — v0.1.1
+# NeoCalc Pro — v0.1.2
 
 PWA React + TypeScript para demonstração de apoio profissional em Neonatologia. **Versão de desenvolvimento: somente dados simulados; não usar em assistência.** Esta entrega implementa a estrutura da fase 1 e uma base funcional do NeoMonitor; não representa a conclusão das seis fases nem validação clínica.
+
+## Datas e acesso público nesta versão
+
+A calculadora de idade recebe nascimento e avaliação por data/hora. A avaliação inicia em hoje, com o horário atual do dispositivo; os dias pós-natais são calculados automaticamente, sem digitação manual. “Usar data de hoje” atualiza a referência. As fórmulas e os registros do paciente permanecem separados.
+
+O domínio chatgpt.site continuou exibindo bloqueio na captura do usuário mesmo após a plataforma confirmar a política pública. Não considere essa confirmação como teste de acesso externo. O projeto agora contém configurações para Netlify (`netlify.toml`) e Vercel (`vercel.json`) e um pacote estático independente. Veja **docs/HOSPEDAGEM-PUBLICA.md** para os passos sem GitHub, a diferença entre link temporário e permanente e os cuidados ao trocar o domínio do cofre local.
 
 ## Executar e testar
 

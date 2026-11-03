@@ -14,7 +14,7 @@ Não use a confirmação de uma configuração como prova de acesso externo. Uma
 
 ## Netlify sem repositório GitHub (opção simples)
 
-1. Baixe `NeoCalc-Pro-site-publico.zip`, disponível em `entregas/` na nova publicação. Descompacte-o. A pasta a enviar deve conter `index.html`, `assets/`, `sw.js` e `manifest.webmanifest` diretamente dentro dela.
+1. Baixe o [site pronto 0.1.2](https://raw.githubusercontent.com/eddiegalvizaac/neocalc-pro/neocalc-public-012/releases/NeoCalc-Pro-site-publico-0.1.2.zip). Descompacte-o. A pasta a enviar deve conter `index.html`, `assets/`, `sw.js` e `manifest.webmanifest` diretamente dentro dela.
 2. Acesse **https://app.netlify.com/drop** no navegador. Entre ou crie uma conta sua no Netlify; essa conta é somente para administrar a hospedagem. Os visitantes do aplicativo não precisam de conta.
 3. Arraste a pasta descompactada para a área de publicação. Aguarde o Netlify gerar o endereço HTTPS `https://<nome-gerado>.netlify.app`.
 4. Nas configurações do projeto, mantenha a proteção de visitantes/senha de publicação desativada para este aplicativo de demonstração. Abra o endereço de produção em janela anônima e confirme que aparece o NeoCalc Pro.
@@ -52,7 +52,7 @@ A publicação no Netlify/Vercel precisa da ação do proprietário na conta del
 
 Uma publicação ShipStatic pode oferecer acesso HTTPS imediato sem login de visitantes. Se o serviço retornar prazo de expiração, o link é temporário. Para mantê-lo na mesma hospedagem, o proprietário precisa usar o link privado de reivindicação retornado pelo serviço e concluir a associação a uma conta. Esse link de reivindicação não deve ser publicado com o app nem compartilhado com os colegas.
 
-O prazo e o endereço efetivamente retornados são informados no chat. Não trate um link temporário como hospedagem definitiva. Netlify Drop é a opção acima para obter uma URL estável administrada pelo proprietário.
+A tentativa de publicação automática e a consulta de confirmação ficaram sem resposta. Não há um endereço confirmado nesse serviço nesta entrega. Não foi repetido o upload sem conhecer o resultado anterior. Use o pacote verificado no GitHub e o Netlify Drop para obter uma URL estável administrada pelo proprietário.
 
 ## Dados locais e troca de domínio
 
